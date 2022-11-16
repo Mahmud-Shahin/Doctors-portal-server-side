@@ -35,6 +35,39 @@ async function run() {
       res.send(services);
     });
 
+    //warning
+    // this is the proper way to query
+    // after learning more about mongodb use aggregate function lookup, pipeline, match , group
+
+    app.get("/avilable", async (req, res) => {
+      const date = req.query.date;
+
+      // step 1: get all services
+      const services = await serviceCollection.find().toArray();
+
+      // step 2 : get the booking of that day
+      const query = { date: date };
+      const bookings = await bookingCollection.find(query).toArray();
+
+      //step 3 : for each service
+      services.forEach((service) => {
+        // step:4 find booking for that services
+        const servicebookings = bookings.filter(
+          (book) => book.treatment === service.name
+        );
+        //step: 5 select slots for the service booking
+
+        const bookedSlots = servicebookings.map((book) => book.slot);
+        // step:6 select those slots that are not in booked slot
+        const avilable = service.slots.filter(
+          (slot) => !bookedSlots.includes(slot)
+        );
+        service.slot = avilable;
+      });
+
+      res.send(services);
+    });
+
     app.post("/booking", async (req, res) => {
       const booking = req.body;
       const query = {
