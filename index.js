@@ -39,7 +39,7 @@ async function run() {
     // this is the proper way to query
     // after learning more about mongodb use aggregate function lookup, pipeline, match , group
 
-    app.get("/avilable", async (req, res) => {
+    app.get("/available", async (req, res) => {
       const date = req.query.date;
 
       // step 1: get all services
@@ -59,13 +59,20 @@ async function run() {
 
         const bookedSlots = servicebookings.map((book) => book.slot);
         // step:6 select those slots that are not in booked slot
-        const avilable = service.slots.filter(
+        const available = service.slots.filter(
           (slot) => !bookedSlots.includes(slot)
         );
-        service.slot = avilable;
+        service.slots = available;
       });
 
       res.send(services);
+    });
+
+    app.get("/booking", async (req, res) => {
+      const patient = req.query.patient;
+      const query = { patient: patient };
+      const bookings = await bookingCollection.find(query).toArray();
+      res.send(bookings);
     });
 
     app.post("/booking", async (req, res) => {
